@@ -2,7 +2,7 @@
  * API client for ThoughtBox backend.
  *
  * API_BASE is resolved at build time from the VITE_API_URL env variable.
- * In Docker, this should point to the backend's public URL (e.g. http://localhost:8000).
+ * For local development, the backend runs at http://localhost:8000.
  * Falls back to http://localhost:8000 for local development.
  */
 

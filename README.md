@@ -247,7 +247,7 @@ Instead of typing separate `docker run` commands with dozens of arguments, Docke
 
 ---
 
-## 🔄 CI/CD Pipelines (GitHub Actions & Jenkins)
+## 🔄 CI/CD Pipeline (GitHub Actions)
 
 ### 1. GitHub Actions Pipeline (`.github/workflows/ci.yml`)
 
@@ -269,54 +269,41 @@ Git Push to GitHub
              CI Status: PASSED / FAILED
 ```
 
-### 2. Jenkins Pipeline (`Jenkinsfile`)
-
-Declarative 4-stage pipeline for automated builds:
-1. **Stage 1: Checkout** — Clones latest commit from Git repository.
-2. **Stage 2: Backend Tests** — Installs dependencies and runs `pytest tests/ -v`.
-3. **Stage 3: Frontend Build** — Runs `npm ci` and compiles TypeScript bundle.
-4. **Stage 4: Docker Build** — Executes `docker compose build` to verify container artifacts build cleanly.
-5. **Post actions** — Emits pipeline success or failure notifications.
-
 ---
 
 ## 🚀 Quick Start & Running the Project
 
 ### Prerequisites
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
-* [Git](https://git-scm.com/) installed.
+* Python 3.11 or newer.
+* Node.js 20.19+ or 22.12+ and npm.
 
-### 1. One-Command Start (Recommended)
-From the project root:
-```powershell
-docker compose up -d --build
+### 1. Start the Backend
+From the project root, create the environment and install the dependencies:
+```sh
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
+```
+Then start the API using SQLite for local development:
+```sh
+cd backend
+DATABASE_URL=sqlite:///./thoughtbox.db .venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-### 2. Accessing the Services
+### 2. Start the Frontend
+In a second terminal, from the project root:
+```sh
+cd frontend
+npm ci
+npm run dev
+```
+
+### 3. Accessing the Services
 | Service | URL | Notes |
 | :--- | :--- | :--- |
-| **Frontend Application** | [http://localhost:3000](http://localhost:3000) | ThoughtBox interactive React UI |
+| **Frontend Application** | [http://localhost:5173](http://localhost:5173) | ThoughtBox interactive React UI |
 | **Backend API Docs (Swagger)** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive Swagger UI |
 | **Backend Health Check** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | Returns DB & API health |
-| **PostgreSQL Database** | `localhost:5432` | User: `thoughtbox`, DB: `thoughtbox` |
-
-### 3. Essential Docker Management Commands
-```powershell
-# Check status of running containers
-docker compose ps
-
-# View real-time logs from all services
-docker compose logs -f
-
-# View backend logs specifically
-docker compose logs -f backend
-
-# Stop all services (preserves database data)
-docker compose down
-
-# Stop and wipe database data (clean reset)
-docker compose down -v
-```
+| **Local Database** | `backend/thoughtbox.db` | SQLite file created at backend startup |
 
 ---
 
