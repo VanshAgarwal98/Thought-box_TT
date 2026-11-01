@@ -1,0 +1,59 @@
+# ThoughtBox - Docker Compose Configuration
+# Usage:
+#   docker compose up --build      # Build and start all services
+#   docker compose down            # Stop and remove containers
+#   docker compose down -v         # Also remove database volume
+
+name: thoughtbox
+
+services:
+  # ── PostgreSQL Database ──────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-thoughtbox}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-thoughtbox}
+      POSTGRES_DB: ${POSTGRES_DB:-thoughtbox}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-thoughtbox}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # ── FastAPI Backend ──────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://thoughtbox:thoughtbox@db:5432/thoughtbox
+      MODERATOR_SECRET: ${MODERATOR_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-thoughtbox-super-secret-jwt-key-2026}
+      CORS_ORIGINS: http://localhost:3000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── React Frontend (Nginx) ───────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+    name: thoughtbox_pgdata
+
